@@ -1,26 +1,21 @@
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "../app/store";
-import { fetchUsers } from "../features/users/usersSlice";
+import { fetchUsers, deleteUser } from "../features/users/usersSlice";
 import UserModal from "../components/UserModal";
-import { Button } from "@mui/material";
+import { Button, ButtonGroup } from "@mui/material";
 import type { User } from "../features/users/usersSlice";
-import { deleteUser } from "../features/users/usersSlice";
-import { ButtonGroup } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 const UsersPage = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
   const users = useSelector((state: RootState) => state.users.users);
   const status = useSelector((state: RootState) => state.users.status);
   const error = useSelector((state: RootState) => state.users.error);
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<null | {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-  }>(null);
+  const [selectedUser, setSelectedUser] = useState<null | User>(null);
 
   const handleOpenCreate = () => {
     setSelectedUser(null);
@@ -60,7 +55,7 @@ const UsersPage = () => {
       </Button>
 
       {status === "loading" && <p>Loading...</p>}
-      {status === "failed" && <p>Error: {error}</p>}
+      {status === "failed" && <p style={{ color: "red" }}>Error: {error}</p>}
 
       {status === "succeeded" && (
         <>
@@ -76,7 +71,11 @@ const UsersPage = () => {
             </thead>
             <tbody>
               {currentUsers.map((user) => (
-                <tr key={user.id}>
+                <tr
+                  key={user.id}
+                  style={{ cursor: "pointer" }}
+                  onClick={() => navigate(`/users/${user.id}`)}
+                >
                   <td>{user.id}</td>
                   <td>{user.firstName}</td>
                   <td>{user.lastName}</td>
@@ -84,14 +83,21 @@ const UsersPage = () => {
                   <td>
                     <Button
                       variant="outlined"
-                      onClick={() => handleOpenUpdate(user)}
+                      style={{ marginRight: 5 }}
+                      onClick={(e) => {
+                        e.stopPropagation(); // чтобы не срабатывал navigate
+                        handleOpenUpdate(user);
+                      }}
                     >
                       Edit
                     </Button>
                     <Button
                       variant="contained"
                       color="error"
-                      onClick={() => dispatch(deleteUser(user.id))}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        dispatch(deleteUser(user.id));
+                      }}
                     >
                       Delete
                     </Button>
@@ -102,18 +108,19 @@ const UsersPage = () => {
           </table>
 
           <div style={{ marginTop: "20px" }}>
-  <ButtonGroup variant="outlined">
-    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-      <Button
-        key={page}
-        onClick={() => handlePageChange(page)}
-        color={currentPage === page ? "primary" : "inherit"}
-      >
-        {page}
-      </Button>
-    ))}
-  </ButtonGroup>
-</div>
+            <ButtonGroup variant="outlined">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (page) => (
+                  <Button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    color={currentPage === page ? "primary" : "inherit"}
+                  >
+                    {page}
+                  </Button>
+                ),
+              )}
+            </ButtonGroup>
           </div>
         </>
       )}
