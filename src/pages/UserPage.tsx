@@ -128,7 +128,7 @@ const UsersPage = () => {
       <UserModal
         open={modalOpen}
         handleClose={handleClose}
-        user={selectedUser}
+        user={selectedUser ?? undefined} 
       />
     </div>
   );
