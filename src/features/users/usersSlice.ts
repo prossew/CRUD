@@ -2,6 +2,7 @@ import {
   createSlice,
   createAsyncThunk,
   type PayloadAction,
+  type ActionReducerMapBuilder,
 } from "@reduxjs/toolkit";
 import { api } from "../../api/axios";
 
@@ -58,34 +59,44 @@ const usersSlice = createSlice({
   name: "users",
   initialState,
   reducers: {},
-  extraReducers: (builder) => {
+  extraReducers: (builder: ActionReducerMapBuilder<UsersState>) => {
     builder
-
-      .addCase(fetchUsers.pending, (state) => {
+      .addCase(fetchUsers.pending, (state: UsersState) => {
         state.status = "loading";
         state.error = null;
       })
-      .addCase(fetchUsers.fulfilled, (state, action: PayloadAction<User[]>) => {
-        state.status = "succeeded";
-        state.users = action.payload;
-      })
-      .addCase(fetchUsers.rejected, (state, action) => {
+      .addCase(
+        fetchUsers.fulfilled,
+        (state: UsersState, action: PayloadAction<User[]>) => {
+          state.status = "succeeded";
+          state.users = action.payload;
+        },
+      )
+      .addCase(fetchUsers.rejected, (state: UsersState, action) => {
         state.status = "failed";
-        state.error = action.error.message || "Something went wrong";
+        state.error = action.error?.message || "Something went wrong";
       })
-
-      .addCase(createUser.fulfilled, (state, action: PayloadAction<User>) => {
-        state.users.push(action.payload);
-      })
-
-      .addCase(updateUser.fulfilled, (state, action: PayloadAction<User>) => {
-        const index = state.users.findIndex((u) => u.id === action.payload.id);
-        if (index !== -1) state.users[index] = action.payload;
-      })
-
-      .addCase(deleteUser.fulfilled, (state, action: PayloadAction<string>) => {
-        state.users = state.users.filter((u) => u.id !== action.payload);
-      });
+      .addCase(
+        createUser.fulfilled,
+        (state: UsersState, action: PayloadAction<User>) => {
+          state.users.push(action.payload);
+        },
+      )
+      .addCase(
+        updateUser.fulfilled,
+        (state: UsersState, action: PayloadAction<User>) => {
+          const index = state.users.findIndex(
+            (u) => u.id === action.payload.id,
+          );
+          if (index !== -1) state.users[index] = action.payload;
+        },
+      )
+      .addCase(
+        deleteUser.fulfilled,
+        (state: UsersState, action: PayloadAction<string>) => {
+          state.users = state.users.filter((u) => u.id !== action.payload);
+        },
+      );
   },
 });
 
